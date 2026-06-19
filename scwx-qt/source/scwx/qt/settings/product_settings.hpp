@@ -23,9 +23,10 @@ public:
    ProductSettings(ProductSettings&&) noexcept;
    ProductSettings& operator=(ProductSettings&&) noexcept;
 
-   SettingsVariable<bool>& show_smoothed_range_folding();
-   SettingsVariable<bool>& sti_forecast_enabled();
-   SettingsVariable<bool>& sti_past_enabled();
+   SettingsVariable<bool>&   show_smoothed_range_folding();
+   SettingsVariable<bool>&   sti_forecast_enabled();
+   SettingsVariable<bool>&   sti_past_enabled();
+   SettingsVariable<double>& srv_mean_radius_km();
 
    [[nodiscard]] std::optional<float>
         color_table_threshold(common::RadarProductGroup group,

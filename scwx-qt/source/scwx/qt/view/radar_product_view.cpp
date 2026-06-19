@@ -199,6 +199,11 @@ bool RadarProductView::IsInitialized() const
    return p->initialized_;
 }
 
+std::string RadarProductView::GetSourceProductName() const
+{
+   return GetRadarProductName();
+}
+
 std::vector<float> RadarProductView::GetElevationCuts() const
 {
    return {};

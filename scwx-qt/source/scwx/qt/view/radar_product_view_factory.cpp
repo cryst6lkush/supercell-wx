@@ -1,5 +1,6 @@
 #include <scwx/qt/view/radar_product_view_factory.hpp>
 #include <scwx/qt/view/level2_product_view.hpp>
+#include <scwx/qt/view/level3_mean_relative_velocity_view.hpp>
 #include <scwx/qt/view/level3_radial_view.hpp>
 #include <scwx/qt/view/level3_raster_view.hpp>
 #include <scwx/util/logger.hpp>
@@ -59,7 +60,13 @@ std::shared_ptr<RadarProductView> RadarProductViewFactory::Create(
          productCode = common::GetLevel3ProductCodeByAwipsId(productName);
       }
 
-      if (level3RadialProducts_.contains(productCode))
+      if (productCode == 56)
+      {
+         // Storm Relative Velocity slot renders the derived Relative SRV view
+         view = Level3MeanRelativeVelocityView::Create(productName,
+                                                       radarProductManager);
+      }
+      else if (level3RadialProducts_.contains(productCode))
       {
          view = Level3RadialView::Create(productName, radarProductManager);
       }

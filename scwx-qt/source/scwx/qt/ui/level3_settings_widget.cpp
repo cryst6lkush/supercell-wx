@@ -1,6 +1,8 @@
 #include <scwx/qt/ui/level3_settings_widget.hpp>
 #include <scwx/qt/ui/threshold_line_edit_sync.hpp>
 #include <scwx/qt/ui/threshold_value_utility.hpp>
+#include <scwx/qt/settings/product_settings.hpp>
+#include <scwx/common/products.hpp>
 #include <scwx/util/logger.hpp>
 
 #include <algorithm>
@@ -8,6 +10,7 @@
 #include <limits>
 
 #include <QCheckBox>
+#include <QDoubleSpinBox>
 #include <QEvent>
 #include <QFontMetrics>
 #include <QGroupBox>
@@ -16,6 +19,7 @@
 #include <QLineEdit>
 #include <QLocale>
 #include <QMetaObject>
+#include <QSignalBlocker>
 #include <QSlider>
 
 namespace scwx::qt::ui
@@ -23,6 +27,9 @@ namespace scwx::qt::ui
 
 static const std::string logPrefix_ = "scwx::qt::ui::level3_settings_widget";
 static const auto        logger_    = util::Logger::Create(logPrefix_);
+
+// Storm Relative Velocity (rendered as Relative SRV)
+static constexpr int kSrmProductCode_ = 56;
 
 class Level3SettingsWidgetImpl : public QObject
 {
@@ -74,12 +81,40 @@ public:
       layout_->addWidget(thresholdGroupBox_);
 
       thresholdGroupBox_->setVisible(false);
+
+      // Relative SRV mean radius (shown only for the SRM/Relative SRV product)
+      meanRadiusGroupBox_ = new QGroupBox(tr("Relative SRV"), self);
+      auto* meanRadiusLayout = new QHBoxLayout(meanRadiusGroupBox_);
+
+      meanRadiusLayout->addWidget(
+         new QLabel(tr("Mean radius (km)"), meanRadiusGroupBox_));
+
+      meanRadiusSpinBox_ = new QDoubleSpinBox(meanRadiusGroupBox_);
+      meanRadiusSpinBox_->setDecimals(0);
+      meanRadiusSpinBox_->setSingleStep(5.0);
+      {
+         auto& radiusSetting =
+            settings::ProductSettings::Instance().srv_mean_radius_km();
+         meanRadiusSpinBox_->setMinimum(radiusSetting.GetMinimum().value_or(5.0));
+         meanRadiusSpinBox_->setMaximum(
+            radiusSetting.GetMaximum().value_or(150.0));
+         meanRadiusSpinBox_->setValue(radiusSetting.GetStagedOrValue());
+      }
+      meanRadiusLayout->addWidget(meanRadiusSpinBox_);
+
+      layout_->addWidget(meanRadiusGroupBox_);
+      meanRadiusGroupBox_->setVisible(false);
       // NOLINTEND(cppcoreguidelines-owning-memory) Qt takes care of this
 
       QObject::connect(thresholdCheckBox_,
                        &QCheckBox::toggled,
                        this,
                        &Level3SettingsWidgetImpl::HandleThresholdToggled);
+
+      QObject::connect(meanRadiusSpinBox_,
+                       &QDoubleSpinBox::valueChanged,
+                       this,
+                       &Level3SettingsWidgetImpl::HandleMeanRadiusChanged);
 
       QObject::connect(thresholdSlider_,
                        &QSlider::valueChanged,
@@ -98,6 +133,7 @@ public:
    void HandleThresholdToggled(bool checked);
    void HandleThresholdSliderChanged(int value);
    void HandleThresholdEditFinished();
+   void HandleMeanRadiusChanged(double value);
    void UpdateThresholdValueDisplay(int  sliderValue,
                                     bool force_line_edit = false);
 
@@ -112,6 +148,9 @@ public:
    QSlider*   thresholdSlider_ {};
    QLineEdit* thresholdValueEdit_ {};
    QLabel*    thresholdUnitsLabel_ {};
+
+   QGroupBox*      meanRadiusGroupBox_ {};
+   QDoubleSpinBox* meanRadiusSpinBox_ {};
 
    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
    float thresholdRangeMin_ {-32.0f};
@@ -333,6 +372,32 @@ bool Level3SettingsWidget::UpdateThreshold(map::MapWidget* activeMap)
                                   force_line_edit);
    p->suppressThresholdSignal_ = false;
    return true;
+}
+
+void Level3SettingsWidgetImpl::HandleMeanRadiusChanged(double value)
+{
+   settings::ProductSettings::Instance().srv_mean_radius_km().StageValue(value);
+}
+
+bool Level3SettingsWidget::UpdateMeanRadius(map::MapWidget* activeMap)
+{
+   const bool isSrv =
+      common::GetLevel3ProductCodeByAwipsId(activeMap->GetRadarProductName()) ==
+      kSrmProductCode_;
+
+   if (isSrv)
+   {
+      // Sync the control to the current (possibly staged) value without
+      // re-staging it
+      const double radiusKm = settings::ProductSettings::Instance()
+                                 .srv_mean_radius_km()
+                                 .GetStagedOrValue();
+      const QSignalBlocker blocker(p->meanRadiusSpinBox_);
+      p->meanRadiusSpinBox_->setValue(radiusKm);
+   }
+
+   p->meanRadiusGroupBox_->setVisible(isSrv);
+   return isSrv;
 }
 
 } // namespace scwx::qt::ui

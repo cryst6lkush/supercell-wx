@@ -20,6 +20,14 @@ public:
 
    bool UpdateThreshold(map::MapWidget* activeMap);
 
+   /**
+    * @brief Show the Mean radius (km) control only when the active product is the
+    * Relative SRV (SRM, code 56) view, and sync it from settings.
+    *
+    * @return true if the radius control is visible, otherwise false.
+    */
+   bool UpdateMeanRadius(map::MapWidget* activeMap);
+
 signals:
    void ThresholdChanged(std::optional<float> threshold);
 

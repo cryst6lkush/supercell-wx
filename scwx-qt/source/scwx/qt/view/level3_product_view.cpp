@@ -137,9 +137,11 @@ void Level3ProductView::ConnectRadarProductManager()
            this,
            [this](std::shared_ptr<types::RadarProductRecord> record)
            {
+              // Filter on the source feed (resolved at signal time so derived
+              // overrides apply), not the selected product name
               if (record->radar_product_group() ==
                      common::RadarProductGroup::Level3 &&
-                  record->radar_product() == p->product_ &&
+                  record->radar_product() == SourceProductName() &&
                   record->time() == selected_time())
               {
                  // If the data associated with the currently selected time is
@@ -156,7 +158,8 @@ void Level3ProductView::ConnectRadarProductManager()
                   std::chrono::system_clock::time_point queryTime)
            {
               if (group == common::RadarProductGroup::Level3 &&
-                  product == p->product_ && queryTime == selected_time())
+                  product == SourceProductName() &&
+                  queryTime == selected_time())
               {
                  // If the data associated with the currently selected time is
                  // reloaded, update the view
@@ -295,6 +298,16 @@ common::RadarProductGroup Level3ProductView::GetRadarProductGroup() const
 std::string Level3ProductView::GetRadarProductName() const
 {
    return p->product_;
+}
+
+std::string Level3ProductView::GetSourceProductName() const
+{
+   return SourceProductName();
+}
+
+std::string Level3ProductView::SourceProductName() const
+{
+   return GetRadarProductName();
 }
 
 void Level3ProductView::Impl::UpdateAccumulationUnits(const std::string& name)

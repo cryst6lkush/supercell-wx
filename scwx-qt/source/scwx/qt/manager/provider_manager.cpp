@@ -17,7 +17,9 @@ namespace
 static const std::string logPrefix_ = "scwx::qt::manager::provider_manager";
 static const auto        logger_    = scwx::util::Logger::Create(logPrefix_);
 
-static constexpr std::chrono::seconds kFastRetryInterval_ {15};
+// ponytail: poll floor once a new volume is due. Lowered 15s -> 8s for a more
+// responsive update; raise if it pressures the data provider / rate limits.
+static constexpr std::chrono::seconds kFastRetryInterval_ {8};
 static constexpr std::chrono::seconds kFastRetryIntervalChunks_ {3};
 static constexpr std::chrono::seconds kSlowRetryInterval_ {120};
 static constexpr std::chrono::seconds kSlowRetryIntervalChunks_ {20};

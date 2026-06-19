@@ -3,8 +3,15 @@
 #include <scwx/qt/view/level3_product_view.hpp>
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <vector>
+
+namespace scwx::wsr88d::rpg
+{
+class GenericRadialDataPacket;
+class ProductDescriptionBlock;
+} // namespace scwx::wsr88d::rpg
 
 namespace scwx::qt::view
 {
@@ -43,6 +50,23 @@ public:
 
 protected:
    boost::asio::thread_pool& thread_pool() override;
+
+   /**
+    * @brief Whether a moment transform parameter changed and a recompute is
+    * required even though the underlying message is unchanged. Default false.
+    */
+   [[nodiscard]] virtual bool MomentTransformDirty() const;
+
+   /**
+    * @brief Optionally replace the per-radial level bytes used by ComputeSweep.
+    * Default returns false (use the packet's own levels). When true, @p outLevels
+    * is sized [radials][rangeBins] and read instead of the raw packet.
+    */
+   virtual bool TransformLevels(
+      const std::shared_ptr<wsr88d::rpg::GenericRadialDataPacket>& radialData,
+      const std::shared_ptr<wsr88d::rpg::ProductDescriptionBlock>&
+                                              descriptionBlock,
+      std::vector<std::vector<std::uint8_t>>& outLevels);
 
 protected slots:
    void ComputeSweep() override;
