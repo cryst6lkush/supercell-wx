@@ -344,6 +344,7 @@ public:
    ui::Level3SettingsWidget* level3SettingsWidget_ {nullptr};
 
    QLabel* coordinateLabel_ {nullptr};
+   QLabel* productValueLabel_ {nullptr};
    QLabel* timeLabel_ {nullptr};
 
    ui::AlertDockWidget*                  alertDockWidget_ {};
@@ -615,6 +616,11 @@ MainWindow::MainWindow(QWidget* parent) :
    p->coordinateLabel_->setFrameShadow(QFrame::Shadow::Sunken);
    p->coordinateLabel_->setVisible(false);
 
+   p->productValueLabel_ = new QLabel(this);
+   p->productValueLabel_->setFrameShape(QFrame::Shape::Box);
+   p->productValueLabel_->setFrameShadow(QFrame::Shadow::Sunken);
+   p->productValueLabel_->setVisible(false);
+
    p->timeLabel_ = new QLabel(this);
    p->timeLabel_->setFrameShape(QFrame::Shape::Box);
    p->timeLabel_->setFrameShadow(QFrame::Shadow::Sunken);
@@ -623,7 +629,8 @@ MainWindow::MainWindow(QWidget* parent) :
    QGridLayout* statusBarLayout = new QGridLayout(statusBarWidget);
    statusBarLayout->setContentsMargins(0, 0, 0, 0);
    statusBarLayout->addWidget(p->coordinateLabel_, 0, 0);
-   statusBarLayout->addWidget(p->timeLabel_, 0, 1);
+   statusBarLayout->addWidget(p->productValueLabel_, 0, 1);
+   statusBarLayout->addWidget(p->timeLabel_, 0, 2);
    ui->statusbar->addPermanentWidget(statusBarWidget);
 
    // ImGui Debug Dialog
@@ -2644,7 +2651,7 @@ void MainWindowImpl::ConnectMapSignals()
          mapWidget,
          &map::MapWidget::MouseCoordinateChanged,
          this,
-         [this](common::Coordinate coordinate)
+         [this, mapWidget](common::Coordinate coordinate)
          {
             const QString latitude = QString::fromStdString(
                common::GetLatitudeString(coordinate.latitude_));
@@ -2654,6 +2661,12 @@ void MainWindowImpl::ConnectMapSignals()
             coordinateLabel_->setText(
                QString("%1, %2").arg(latitude).arg(longitude));
             coordinateLabel_->setVisible(true);
+
+            // Product value at the hovered point (e.g. velocity speed)
+            const QString value = QString::fromStdString(
+               mapWidget->GetRadarValueString(coordinate));
+            productValueLabel_->setText(value);
+            productValueLabel_->setVisible(!value.isEmpty());
 
             for (auto& map : maps_)
             {
@@ -3697,8 +3710,11 @@ void MainWindowImpl::UpdateRadarProductSettings()
 
       level3SettingsWidget_->setEnabled(true);
       level3SettingsGroup_->setVisible(true);
-      const bool hasContent =
+      const bool thresholdContent =
          level3SettingsWidget_->UpdateThreshold(activeMap_);
+      const bool radiusContent =
+         level3SettingsWidget_->UpdateMeanRadius(activeMap_);
+      const bool hasContent = thresholdContent || radiusContent;
       level3SettingsWidget_->setEnabled(hasContent);
       level3SettingsGroup_->setVisible(hasContent);
    }

@@ -74,6 +74,13 @@ public:
    [[nodiscard]] std::pair<float, float> GetColorTableRange() const;
    [[nodiscard]] std::string             GetColorTableUnits() const;
 
+   /**
+    * @brief Formatted product value (e.g. "45.2 kts" or "RF") at a map
+    * coordinate, or empty if the coordinate is not over radar data.
+    */
+   [[nodiscard]] std::string
+   GetRadarValueString(const common::Coordinate& coordinate) const;
+
    void ScreenCapture(types::CaptureType captureType);
 
    void SelectElevation(float elevation);

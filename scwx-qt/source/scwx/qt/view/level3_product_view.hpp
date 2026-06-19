@@ -37,6 +37,7 @@ public:
 
    common::RadarProductGroup GetRadarProductGroup() const override;
    std::string               GetRadarProductName() const override;
+   std::string               GetSourceProductName() const override;
 
    std::optional<wsr88d::DataLevelCode>
                         GetDataLevelCode(std::uint16_t level) const override;
@@ -59,6 +60,13 @@ protected:
    void ConnectRadarProductManager() override;
    void DisconnectRadarProductManager() override;
    void UpdateColorTableLut() override;
+
+   /**
+    * @brief Name of the product feed this view reads. Defaults to the selected
+    * product name; a derived view (e.g. Relative SRV) overrides it to read a
+    * different feed than the one it is selected as.
+    */
+   [[nodiscard]] virtual std::string SourceProductName() const;
 
    [[nodiscard]] std::uint8_t ComputeEdgeValue() const;
 

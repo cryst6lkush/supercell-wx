@@ -77,6 +77,14 @@ public:
    [[nodiscard]] virtual common::RadarProductGroup
                                             GetRadarProductGroup() const = 0;
    [[nodiscard]] virtual std::string        GetRadarProductName() const  = 0;
+
+   /**
+    * @brief Name of the product whose data feed this view reads. Defaults to the
+    * selected product name, but a derived view may read a different feed than the
+    * one it is selected as (e.g. Relative SRV is selected as SRM but reads base
+    * velocity). Live-update plumbing keys off this name.
+    */
+   [[nodiscard]] virtual std::string GetSourceProductName() const;
    [[nodiscard]] virtual std::vector<float> GetElevationCuts() const;
    [[nodiscard]] virtual std::tuple<const void*, std::size_t, std::size_t>
    GetMomentData() const = 0;

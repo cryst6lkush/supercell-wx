@@ -138,7 +138,7 @@ void Level3RadialView::ComputeSweep()
    std::chrono::system_clock::time_point       foundTime;
    types::RadarProductLoadStatus               loadStatus {};
    std::tie(message, foundTime, loadStatus) =
-      radarProductManager->GetLevel3Data(GetRadarProductName(), requestedTime);
+      radarProductManager->GetLevel3Data(SourceProductName(), requestedTime);
 
    set_load_status(loadStatus);
 
@@ -170,9 +170,11 @@ void Level3RadialView::ComputeSweep()
    else if (gpm == graphic_product_message() &&
             smoothingEnabled == p->lastSmoothingEnabled_ &&
             (showSmoothedRangeFolding == p->lastShowSmoothedRangeFolding_ ||
-             !smoothingEnabled))
+             !smoothingEnabled) &&
+            !MomentTransformDirty())
    {
-      // Skip if this is the message we previously processed
+      // Skip if this is the message we previously processed (unless a moment
+      // transform parameter changed and forces a recompute)
       Q_EMIT SweepNotComputed(types::NoUpdateReason::NoChange);
       return;
    }
@@ -267,6 +269,13 @@ void Level3RadialView::ComputeSweep()
       Q_EMIT SweepNotComputed(types::NoUpdateReason::InvalidData);
       return;
    }
+
+   // Allow a derived view to substitute the level bytes (e.g. a high-pass
+   // transform). When useTransform is true, the gate loop reads transformedLevels
+   // instead of the packet's own levels.
+   std::vector<std::vector<std::uint8_t>> transformedLevels;
+   const bool useTransform =
+      TransformLevels(radialData, descriptionBlock, transformedLevels);
 
    common::RadialSize radialSize = common::RadialSize::NonStandard;
 
@@ -380,11 +389,14 @@ void Level3RadialView::ComputeSweep()
    for (std::uint16_t radial = 0; radial < radialData->number_of_radials();
         ++radial)
    {
-      const auto& dataMomentsArray8 = radialData->level(radial);
+      const auto& dataMomentsArray8 =
+         useTransform ? transformedLevels[radial] : radialData->level(radial);
 
       const std::uint16_t nextRadial =
          (radial == radialData->number_of_radials() - 1) ? 0 : radial + 1;
-      const auto& nextDataMomentsArray8 = radialData->level(nextRadial);
+      const auto& nextDataMomentsArray8 =
+         useTransform ? transformedLevels[nextRadial] :
+                        radialData->level(nextRadial);
 
       for (std::uint16_t gate = startGate, i = 0; gate + gateSize <= endGate;
            gate += gateSize, ++i)
@@ -734,6 +746,20 @@ Level3RadialView::GetBinLevel(const common::Coordinate& coordinate) const
    }
 
    return level;
+}
+
+bool Level3RadialView::MomentTransformDirty() const
+{
+   return false;
+}
+
+bool Level3RadialView::TransformLevels(
+   const std::shared_ptr<wsr88d::rpg::GenericRadialDataPacket>& /* radialData */,
+   const std::shared_ptr<wsr88d::rpg::ProductDescriptionBlock>&
+   /* descriptionBlock */,
+   std::vector<std::vector<std::uint8_t>>& /* outLevels */)
+{
+   return false;
 }
 
 std::shared_ptr<Level3RadialView> Level3RadialView::Create(

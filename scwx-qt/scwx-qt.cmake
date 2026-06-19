@@ -472,6 +472,7 @@ set(SRC_UTIL source/scwx/qt/util/color.cpp
              source/scwx/qt/util/time.cpp
              source/scwx/qt/util/tooltip.cpp)
 set(HDR_VIEW source/scwx/qt/view/level2_product_view.hpp
+             source/scwx/qt/view/level3_mean_relative_velocity_view.hpp
              source/scwx/qt/view/level3_product_view.hpp
              source/scwx/qt/view/level3_radial_view.hpp
              source/scwx/qt/view/level3_raster_view.hpp
@@ -479,6 +480,7 @@ set(HDR_VIEW source/scwx/qt/view/level2_product_view.hpp
              source/scwx/qt/view/radar_product_view.hpp
              source/scwx/qt/view/radar_product_view_factory.hpp)
 set(SRC_VIEW source/scwx/qt/view/level2_product_view.cpp
+             source/scwx/qt/view/level3_mean_relative_velocity_view.cpp
              source/scwx/qt/view/level3_product_view.cpp
              source/scwx/qt/view/level3_radial_view.cpp
              source/scwx/qt/view/level3_raster_view.cpp

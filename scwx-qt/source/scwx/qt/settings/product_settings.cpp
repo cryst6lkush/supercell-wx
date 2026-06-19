@@ -46,6 +46,9 @@ public:
       showSmoothedRangeFolding_.SetDefault(false);
       stiForecastEnabled_.SetDefault(true);
       stiPastEnabled_.SetDefault(true);
+      srvMeanRadiusKm_.SetDefault(30.0);
+      srvMeanRadiusKm_.SetMinimum(5.0);
+      srvMeanRadiusKm_.SetMaximum(150.0);
       // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
    }
 
@@ -117,8 +120,9 @@ public:
 
    SettingsVariable<bool> showSmoothedRangeFolding_ {
       "show_smoothed_range_folding"};
-   SettingsVariable<bool> stiForecastEnabled_ {"sti_forecast_enabled"};
-   SettingsVariable<bool> stiPastEnabled_ {"sti_past_enabled"};
+   SettingsVariable<bool>   stiForecastEnabled_ {"sti_forecast_enabled"};
+   SettingsVariable<bool>   stiPastEnabled_ {"sti_past_enabled"};
+   SettingsVariable<double> srvMeanRadiusKm_ {"srv_mean_radius_km"};
    std::map<std::string, ThresholdData> thresholdData_ {};
 };
 
@@ -127,7 +131,8 @@ ProductSettings::ProductSettings() :
 {
    RegisterVariables({&p->showSmoothedRangeFolding_,
                       &p->stiForecastEnabled_,
-                      &p->stiPastEnabled_});
+                      &p->stiPastEnabled_,
+                      &p->srvMeanRadiusKm_});
    SetDefaults();
 }
 ProductSettings::~ProductSettings() = default;
@@ -149,6 +154,11 @@ SettingsVariable<bool>& ProductSettings::sti_forecast_enabled()
 SettingsVariable<bool>& ProductSettings::sti_past_enabled()
 {
    return p->stiPastEnabled_;
+}
+
+SettingsVariable<double>& ProductSettings::srv_mean_radius_km()
+{
+   return p->srvMeanRadiusKm_;
 }
 
 std::optional<float>
@@ -208,6 +218,7 @@ bool ProductSettings::Shutdown()
    // Commit settings that are managed separate from the settings dialog
    dataChanged |= p->stiForecastEnabled_.Commit();
    dataChanged |= p->stiPastEnabled_.Commit();
+   dataChanged |= p->srvMeanRadiusKm_.Commit();
 
    for (auto& thresholdEntry : p->thresholdData_)
    {
@@ -313,6 +324,7 @@ bool operator==(const ProductSettings& lhs, const ProductSettings& rhs)
               rhs.p->showSmoothedRangeFolding_ &&
            lhs.p->stiForecastEnabled_ == rhs.p->stiForecastEnabled_ &&
            lhs.p->stiPastEnabled_ == rhs.p->stiPastEnabled_ &&
+           lhs.p->srvMeanRadiusKm_ == rhs.p->srvMeanRadiusKm_ &&
            lhs.p->thresholdData_ == rhs.p->thresholdData_);
 }
 

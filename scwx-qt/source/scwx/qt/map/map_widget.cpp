@@ -33,8 +33,10 @@
 #include <scwx/qt/util/tooltip.hpp>
 #include <scwx/qt/view/overlay_product_view.hpp>
 #include <scwx/qt/view/radar_product_view_factory.hpp>
+#include <scwx/common/color_table.hpp>
 #include <scwx/util/logger.hpp>
 #include <scwx/util/time.hpp>
+#include <scwx/wsr88d/wsr88d_types.hpp>
 
 #include <algorithm>
 #include <chrono>
@@ -49,6 +51,7 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_qt.hpp>
 #include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/thread_pool.hpp>
@@ -1078,6 +1081,66 @@ std::string MapWidget::GetColorTableUnits() const
    return {};
 }
 
+std::string
+MapWidget::GetRadarValueString(const common::Coordinate& coordinate) const
+{
+   auto radarProductView = p->context_->radar_product_view();
+   if (radarProductView == nullptr)
+   {
+      return {};
+   }
+
+   std::optional<std::uint16_t> binLevel =
+      radarProductView->GetBinLevel(coordinate);
+   if (!binLevel.has_value())
+   {
+      // Not hovering over a data bin
+      return {};
+   }
+
+   // A special data level code (e.g. range folded) is shown by its short name
+   std::optional<wsr88d::DataLevelCode> code =
+      radarProductView->GetDataLevelCode(binLevel.value());
+   if (code.has_value() && code.value() != wsr88d::DataLevelCode::Blank &&
+       code.value() != wsr88d::DataLevelCode::NoData &&
+       code.value() != wsr88d::DataLevelCode::Topped)
+   {
+      return wsr88d::GetDataLevelCodeShortName(code.value());
+   }
+
+   std::optional<float> value = radarProductView->GetDataValue(binLevel.value());
+   if (!value.has_value())
+   {
+      return {};
+   }
+
+   // Scale to display units, mirroring the hover tooltip in radar_product_layer
+   float       f     = value.value();
+   std::string units = radarProductView->units();
+   if (!units.empty())
+   {
+      f *= radarProductView->unit_scale();
+   }
+   else
+   {
+      std::shared_ptr<common::ColorTable> colorTable =
+         radarProductView->color_table();
+      if (colorTable != nullptr)
+      {
+         f     = f * colorTable->scale() + colorTable->offset();
+         units = colorTable->units();
+      }
+   }
+
+   if (units.empty() || units.starts_with("?") ||
+       boost::iequals(units, "NONE") || boost::iequals(units, "UNITLESS"))
+   {
+      units.clear();
+   }
+
+   return fmt::format("{:.1f}{}{}", f, units.empty() ? "" : " ", units);
+}
+
 void MapWidget::SetColorTableThreshold(std::optional<float> threshold)
 {
    auto radarProductView = p->context_->radar_product_view();
@@ -1214,8 +1277,15 @@ void MapWidget::SelectRadarProduct(common::RadarProductGroup group,
 
    if (p->autoRefreshEnabled_)
    {
+      // Level 3 may read a different feed than the selected product (e.g.
+      // Relative SRV reads base velocity), so poll the source feed
+      const std::string refreshProduct =
+         (group == common::RadarProductGroup::Level3 &&
+          radarProductView != nullptr) ?
+            radarProductView->GetSourceProductName() :
+            productName;
       p->radarProductManager_->EnableRefresh(
-         group, productName, true, p->uuid_);
+         group, refreshProduct, true, p->uuid_);
    }
 }
 
@@ -1266,7 +1336,7 @@ void MapWidget::SelectRadarSite(std::shared_ptr<config::RadarSite> radarSite,
       {
          p->radarProductManager_->EnableRefresh(
             radarProductView->GetRadarProductGroup(),
-            radarProductView->GetRadarProductName(),
+            radarProductView->GetSourceProductName(),
             false,
             p->uuid_);
       }
@@ -1353,7 +1423,7 @@ void MapWidget::SetAutoRefresh(bool enabled)
       {
          p->radarProductManager_->EnableRefresh(
             radarProductView->GetRadarProductGroup(),
-            radarProductView->GetRadarProductName(),
+            radarProductView->GetSourceProductName(),
             true,
             p->uuid_);
       }
@@ -2744,10 +2814,20 @@ void MapWidgetImpl::RadarProductManagerConnect()
                 bool                                  isChunks,
                 std::chrono::system_clock::time_point latestTime)
          {
+            // A Level 3 view may read a different feed than it is selected as
+            // (e.g. Relative SRV reads base velocity). Match when the incoming
+            // product is the active view's source feed.
+            auto       activeView = context_->radar_product_view();
+            const bool sourceMatch =
+               group == common::RadarProductGroup::Level3 &&
+               activeView != nullptr &&
+               context_->radar_product() != product &&
+               activeView->GetSourceProductName() == product;
+
             if (autoRefreshEnabled_ &&
                 context_->radar_product_group() == group &&
                 (group == common::RadarProductGroup::Level2 ||
-                 context_->radar_product() == product))
+                 context_->radar_product() == product || sourceMatch))
             {
                if (isChunks && autoUpdateEnabled_)
                {
@@ -2769,12 +2849,21 @@ void MapWidgetImpl::RadarProductManagerConnect()
                         request.get(),
                         &request::NexradFileRequest::RequestComplete,
                         this,
-                        [group, product, this](
+                        [group, product, latestTime, this](
                            const std::shared_ptr<request::NexradFileRequest>&
                               request)
                         {
                            // Select loaded record
                            auto record = request->radar_product_record();
+
+                           // Re-evaluate source feed match at completion time
+                           auto completionView =
+                              context_->radar_product_view();
+                           const bool completionSourceMatch =
+                              group == common::RadarProductGroup::Level3 &&
+                              completionView != nullptr &&
+                              context_->radar_product() != product &&
+                              completionView->GetSourceProductName() == product;
 
                            // Validate record, and verify current map context
                            // still displays site and product
@@ -2784,13 +2873,29 @@ void MapWidgetImpl::RadarProductManagerConnect()
                                   request->current_radar_site() &&
                                context_->radar_product_group() == group &&
                                (group == common::RadarProductGroup::Level2 ||
-                                context_->radar_product() == product))
+                                context_->radar_product() == product ||
+                                completionSourceMatch))
                            {
                               if (group == common::RadarProductGroup::Level2)
                               {
                                  // Level 2 products may have multiple time
                                  // points, ensure the latest is selected
                                  widget_->SelectRadarProduct(group, product);
+                              }
+                              else if (completionSourceMatch)
+                              {
+                                 // The source feed advanced; keep the selected
+                                 // product but move it to the loaded record's
+                                 // exact volume time so the derived view's
+                                 // GetLevel3Data resolves to the new record and
+                                 // recomputes. Using latestTime here can resolve
+                                 // (bounded lookup) to the previous volume, which
+                                 // silently skips the recompute.
+                                 widget_->SelectRadarProduct(
+                                    group,
+                                    context_->radar_product(),
+                                    context_->radar_product_code(),
+                                    record->time());
                               }
                               else
                               {
