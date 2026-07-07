@@ -46,16 +46,20 @@ set(HDR_COMMON include/scwx/common/application_state.hpp
                include/scwx/common/color_table.hpp
                include/scwx/common/constants.hpp
                include/scwx/common/geographic.hpp
+               include/scwx/common/grid.hpp
                include/scwx/common/products.hpp
                include/scwx/common/sites.hpp
+               include/scwx/common/storm_development_index.hpp
                include/scwx/common/types.hpp
                include/scwx/common/vcp.hpp)
 set(SRC_COMMON source/scwx/common/application_state.cpp
                source/scwx/common/characters.cpp
                source/scwx/common/color_table.cpp
                source/scwx/common/geographic.cpp
+               source/scwx/common/grid.cpp
                source/scwx/common/products.cpp
                source/scwx/common/sites.cpp
+               source/scwx/common/storm_development_index.cpp
                source/scwx/common/vcp.cpp)
 set(HDR_CONFIG include/scwx/config/ondas_config.hpp
                include/scwx/config/ondas_config_loader.hpp)
@@ -87,6 +91,7 @@ set(HDR_PROVIDER include/scwx/provider/aws_level2_data_provider.hpp
                  include/scwx/provider/nws_level3_behavior.hpp
                  include/scwx/provider/ondas_level2_data_provider.hpp
                  include/scwx/provider/ondas_level3_behavior.hpp
+                 include/scwx/provider/open_meteo_provider.hpp
                  include/scwx/provider/warnings_provider.hpp)
 set(SRC_PROVIDER source/scwx/provider/aws_level2_data_provider.cpp
                  source/scwx/provider/aws_level2_chunks_data_provider.cpp
@@ -101,15 +106,18 @@ set(SRC_PROVIDER source/scwx/provider/aws_level2_data_provider.cpp
                  source/scwx/provider/nws_level3_behavior.cpp
                  source/scwx/provider/ondas_level2_data_provider.cpp
                  source/scwx/provider/ondas_level3_behavior.cpp
+                 source/scwx/provider/open_meteo_provider.cpp
                  source/scwx/provider/warnings_provider.cpp)
 set(HDR_TYPES include/scwx/types/iem_types.hpp
               include/scwx/types/ntp_types.hpp
               include/scwx/types/nws_types.hpp
-              include/scwx/types/ondas_types.hpp)
+              include/scwx/types/ondas_types.hpp
+              include/scwx/types/open_meteo_types.hpp)
 set(SRC_TYPES source/scwx/types/iem_types.cpp
               source/scwx/types/ntp_types.cpp
               source/scwx/types/nws_types.cpp
-              source/scwx/types/ondas_types.cpp)
+              source/scwx/types/ondas_types.cpp
+              source/scwx/types/open_meteo_types.cpp)
 set(HDR_UTIL include/scwx/util/digest.hpp
              include/scwx/util/enum.hpp
              include/scwx/util/environment.hpp

@@ -15,7 +15,9 @@ set(SRC_AWIPS_TESTS source/scwx/awips/coded_location.test.cpp
                     source/scwx/awips/ugc.test.cpp
                     source/scwx/awips/wmo_header.test.cpp)
 set(SRC_COMMON_TESTS source/scwx/common/color_table.test.cpp
-                     source/scwx/common/products.test.cpp)
+                     source/scwx/common/grid.test.cpp
+                     source/scwx/common/products.test.cpp
+                     source/scwx/common/storm_development_index.test.cpp)
 set(SRC_CONFIG_TESTS source/scwx/config/ondas_config.test.cpp
                      source/scwx/config/ondas_config_loader.test.cpp)
 set(SRC_GR_TESTS source/scwx/gr/placefile.test.cpp)
@@ -29,6 +31,7 @@ set(SRC_PROVIDER_TESTS source/scwx/provider/aws_level2_data_provider.test.cpp
                        source/scwx/provider/nws_api_provider.test.cpp
                        source/scwx/provider/ondas_level2_data_provider.test.cpp
                        source/scwx/provider/ondas_level3_behavior.test.cpp
+                       source/scwx/provider/open_meteo_provider.test.cpp
                        source/scwx/provider/warnings_provider.test.cpp)
 set(SRC_QT_CONFIG_TESTS source/scwx/qt/config/county_database.test.cpp
                         source/scwx/qt/config/radar_site.test.cpp)

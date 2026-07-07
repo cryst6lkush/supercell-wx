@@ -14,6 +14,7 @@
 #include <scwx/qt/manager/hotkey_manager.hpp>
 #include <scwx/qt/manager/placefile_manager.hpp>
 #include <scwx/qt/manager/settings_manager.hpp>
+#include <scwx/qt/manager/storm_development_manager.hpp>
 #include <scwx/qt/manager/marker_manager.hpp>
 #include <scwx/qt/manager/position_manager.hpp>
 #include <scwx/qt/manager/radar_product_manager.hpp>
@@ -47,6 +48,8 @@
 #include <scwx/qt/ui/marker_dialog.hpp>
 #include <scwx/qt/ui/radar_site_dialog.hpp>
 #include <scwx/qt/ui/settings_dialog.hpp>
+#include <scwx/qt/ui/storm_development_dock_widget.hpp>
+#include <scwx/qt/ui/storm_development_settings_widget.hpp>
 #include <scwx/qt/ui/update_dialog.hpp>
 #include <scwx/qt/ui/import/import_settings_wizard.hpp>
 #include <scwx/common/characters.hpp>
@@ -332,6 +335,9 @@ public:
    ui::CollapsibleGroup*     level3ProductsGroup_ {nullptr};
    ui::CollapsibleGroup*     level3SettingsGroup_ {nullptr};
    ui::CollapsibleGroup*     timelineGroup_ {nullptr};
+   ui::CollapsibleGroup*     stormDevelopmentGroup_ {nullptr};
+   ui::StormDevelopmentSettingsWidget* stormDevelopmentSettingsWidget_ {
+      nullptr};
    ui::Level2ProductsWidget* level2ProductsWidget_ {nullptr};
    ui::Level2SettingsWidget* level2SettingsWidget_ {nullptr};
 
@@ -342,6 +348,7 @@ public:
    QLabel* timeLabel_ {nullptr};
 
    ui::AlertDockWidget*                  alertDockWidget_ {};
+   ui::StormDevelopmentDockWidget*       stormDevelopmentDockWidget_ {};
    QPointer<ui::MapAnnotationDockWidget> mapAnnotationDock_ {};
    ui::AnimationDockWidget*              animationDockWidget_ {};
    ui::AboutDialog*                      aboutDialog_ {};
@@ -470,6 +477,10 @@ MainWindow::MainWindow(QWidget* parent) :
    p->alertDockWidget_ = new ui::AlertDockWidget(this);
    addDockWidget(Qt::BottomDockWidgetArea, p->alertDockWidget_);
 
+   // Configure Storm Development Dock
+   p->stormDevelopmentDockWidget_ = new ui::StormDevelopmentDockWidget(this);
+   addDockWidget(Qt::RightDockWidgetArea, p->stormDevelopmentDockWidget_);
+
    p->mapAnnotationDock_ =
       new ui::MapAnnotationDockWidget(p->mainWindow_->ui->centralwidget);
    p->mapAnnotationDock_->AttachToMap(p->activeMap_);
@@ -500,6 +511,11 @@ MainWindow::MainWindow(QWidget* parent) :
                               p->alertDockWidget_->toggleViewAction());
    p->alertDockWidget_->toggleViewAction()->setText(tr("&Alerts"));
    ui->actionAlerts->setVisible(false);
+
+   ui->menuView->addAction(
+      p->stormDevelopmentDockWidget_->toggleViewAction());
+   p->stormDevelopmentDockWidget_->toggleViewAction()->setText(
+      tr("Storm &Development"));
 
    ui->menuDebug->menuAction()->setVisible(
       settings::GeneralSettings::Instance().debug_enabled().GetValue());
@@ -585,6 +601,16 @@ MainWindow::MainWindow(QWidget* parent) :
    p->timelineGroup_->GetContentsLayout()->addWidget(p->animationDockWidget_);
    ui->radarToolboxScrollAreaContents->layout()->addWidget(p->timelineGroup_);
    p->animationDockWidget_->UpdateTimeZone(defaultTimeZone);
+
+   // Storm Development
+   p->stormDevelopmentGroup_ =
+      new ui::CollapsibleGroup(tr("Storm Development"), this);
+   p->stormDevelopmentSettingsWidget_ =
+      new ui::StormDevelopmentSettingsWidget(this);
+   p->stormDevelopmentGroup_->GetContentsLayout()->addWidget(
+      p->stormDevelopmentSettingsWidget_);
+   ui->radarToolboxScrollAreaContents->layout()->addWidget(
+      p->stormDevelopmentGroup_);
 
    // Reset toolbox spacer at the bottom
    ui->radarToolboxScrollAreaContents->layout()->removeItem(

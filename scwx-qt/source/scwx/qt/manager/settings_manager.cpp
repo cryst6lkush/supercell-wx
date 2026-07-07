@@ -7,6 +7,7 @@
 #include <scwx/qt/settings/map_settings.hpp>
 #include <scwx/qt/settings/palette_settings.hpp>
 #include <scwx/qt/settings/product_settings.hpp>
+#include <scwx/qt/settings/storm_development_settings.hpp>
 #include <scwx/qt/settings/text_settings.hpp>
 #include <scwx/qt/settings/ui_settings.hpp>
 #include <scwx/qt/settings/unit_settings.hpp>
@@ -160,6 +161,7 @@ boost::json::value SettingsManager::Impl::ConvertSettingsToJson()
    settings::MapSettings::Instance().WriteJson(settingsJson);
    settings::PaletteSettings::Instance().WriteJson(settingsJson);
    settings::ProductSettings::Instance().WriteJson(settingsJson);
+   settings::StormDevelopmentSettings::Instance().WriteJson(settingsJson);
    settings::TextSettings::Instance().WriteJson(settingsJson);
    settings::UiSettings::Instance().WriteJson(settingsJson);
    settings::UnitSettings::Instance().WriteJson(settingsJson);
@@ -177,6 +179,7 @@ void SettingsManager::Impl::GenerateDefaultSettings()
    settings::MapSettings::Instance().SetDefaults();
    settings::PaletteSettings::Instance().SetDefaults();
    settings::ProductSettings::Instance().SetDefaults();
+   settings::StormDevelopmentSettings::Instance().SetDefaults();
    settings::TextSettings::Instance().SetDefaults();
    settings::UiSettings::Instance().SetDefaults();
    settings::UnitSettings::Instance().SetDefaults();
@@ -195,6 +198,8 @@ bool SettingsManager::Impl::LoadSettings(
    jsonDirty |= !settings::MapSettings::Instance().ReadJson(settingsJson);
    jsonDirty |= !settings::PaletteSettings::Instance().ReadJson(settingsJson);
    jsonDirty |= !settings::ProductSettings::Instance().ReadJson(settingsJson);
+   jsonDirty |=
+      !settings::StormDevelopmentSettings::Instance().ReadJson(settingsJson);
    jsonDirty |= !settings::TextSettings::Instance().ReadJson(settingsJson);
    jsonDirty |= !settings::UiSettings::Instance().ReadJson(settingsJson);
    jsonDirty |= !settings::UnitSettings::Instance().ReadJson(settingsJson);
