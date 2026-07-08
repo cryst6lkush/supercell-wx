@@ -11,7 +11,8 @@ public:
       // SetDefault, SetMinimum, and SetMaximum are descriptive
       // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
       enabled_.SetDefault(true);
-      refreshIntervalMinutes_.SetDefault(30);
+      // HRRR posts hourly, so refreshing faster only re-fetches the same run.
+      refreshIntervalMinutes_.SetDefault(60);
       refreshIntervalMinutes_.SetMinimum(15);
       refreshIntervalMinutes_.SetMaximum(120);
       // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)

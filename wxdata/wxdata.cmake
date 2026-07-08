@@ -8,6 +8,7 @@ find_package(Boost)
 find_package(cpr)
 find_package(LibXml2)
 find_package(libzip)
+find_package(OpenJPEG)
 find_package(OpenSSL)
 find_package(range-v3)
 find_package(re2)
@@ -46,7 +47,9 @@ set(HDR_COMMON include/scwx/common/application_state.hpp
                include/scwx/common/color_table.hpp
                include/scwx/common/constants.hpp
                include/scwx/common/geographic.hpp
+               include/scwx/common/grib2_message.hpp
                include/scwx/common/grid.hpp
+               include/scwx/common/lambert_conformal.hpp
                include/scwx/common/products.hpp
                include/scwx/common/sites.hpp
                include/scwx/common/storm_development_index.hpp
@@ -56,6 +59,7 @@ set(SRC_COMMON source/scwx/common/application_state.cpp
                source/scwx/common/characters.cpp
                source/scwx/common/color_table.cpp
                source/scwx/common/geographic.cpp
+               source/scwx/common/grib2_message.cpp
                source/scwx/common/grid.cpp
                source/scwx/common/products.cpp
                source/scwx/common/sites.cpp
@@ -88,6 +92,7 @@ set(HDR_PROVIDER include/scwx/provider/aws_level2_data_provider.hpp
                  include/scwx/provider/nexrad_data_provider.hpp
                  include/scwx/provider/nexrad_data_provider_factory.hpp
                  include/scwx/provider/nws_api_provider.hpp
+                 include/scwx/provider/hrrr_provider.hpp
                  include/scwx/provider/nws_level3_behavior.hpp
                  include/scwx/provider/ondas_level2_data_provider.hpp
                  include/scwx/provider/ondas_level3_behavior.hpp
@@ -103,6 +108,7 @@ set(SRC_PROVIDER source/scwx/provider/aws_level2_data_provider.cpp
                  source/scwx/provider/nexrad_data_provider.cpp
                  source/scwx/provider/nexrad_data_provider_factory.cpp
                  source/scwx/provider/nws_api_provider.cpp
+                 source/scwx/provider/hrrr_provider.cpp
                  source/scwx/provider/nws_level3_behavior.cpp
                  source/scwx/provider/ondas_level2_data_provider.cpp
                  source/scwx/provider/ondas_level3_behavior.cpp
@@ -373,6 +379,7 @@ target_link_libraries(wxdata PUBLIC aws-cpp-sdk-core
                                     cpr::cpr
                                     LibXml2::LibXml2
                                     libzip::zip
+                                    openjp2
                                     OpenSSL::Crypto
                                     range-v3::range-v3
                                     re2::re2

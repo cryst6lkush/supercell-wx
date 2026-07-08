@@ -4,6 +4,7 @@
 #include <array>
 #include <cmath>
 
+#include <QImage>
 #include <QPainter>
 
 namespace scwx::qt::ui
@@ -72,48 +73,36 @@ void StormDevelopmentHeatMapWidget::paintEvent(QPaintEvent* /* event */)
    QPainter painter(this);
    painter.fillRect(rect(), palette().color(QPalette::Base));
 
-   if (grid_ == nullptr)
+   if (grid_ == nullptr || grid_->RowCount() == 0 || grid_->ColumnCount() == 0)
    {
       painter.setPen(palette().color(QPalette::WindowText));
       painter.drawText(rect(), Qt::AlignCenter, tr("Waiting for data..."));
       return;
    }
 
-   const double w             = width();
-   const double h             = height();
-   const double latMin        = grid_->LatMin();
-   const double latMax        = grid_->LatMax();
-   const double lonMin        = grid_->LonMin();
-   const double lonMax        = grid_->LonMax();
-   const double spacingDeg    = grid_->SpacingDegrees();
+   // Build a 1-pixel-per-cell image (row 0 = north, col 0 = west, matching the
+   // grid's storage order and the widget's top-left origin), then let Qt
+   // bilinearly upscale it to the widget. Cheaper and smoother than drawing one
+   // rectangle per cell, and independent of the data resolution.
+   const int cols = static_cast<int>(grid_->ColumnCount());
+   const int rows = static_cast<int>(grid_->RowCount());
 
-   for (std::size_t row = 0; row < grid_->RowCount(); ++row)
+   QImage image {cols, rows, QImage::Format_ARGB32};
+
+   for (int row = 0; row < rows; ++row)
    {
-      for (std::size_t column = 0; column < grid_->ColumnCount(); ++column)
+      for (int column = 0; column < cols; ++column)
       {
          const double value = grid_->ValueAt(row, column);
-         if (std::isnan(value))
-         {
-            continue;
-         }
-
-         const common::Coordinate coordinate =
-            grid_->CoordinateAt(row, column);
-
-         const double x0 =
-            (coordinate.longitude_ - lonMin) / (lonMax - lonMin) * w;
-         const double x1 = (coordinate.longitude_ + spacingDeg - lonMin) /
-                           (lonMax - lonMin) * w;
-         const double y0 =
-            (latMax - coordinate.latitude_) / (latMax - latMin) * h;
-         const double y1 =
-            (latMax - (coordinate.latitude_ - spacingDeg)) /
-            (latMax - latMin) * h;
-
-         painter.fillRect(QRectF {x0, y0, x1 - x0, y1 - y0},
-                          LikelihoodColor(value));
+         image.setPixelColor(
+            column,
+            row,
+            std::isnan(value) ? QColor {Qt::transparent} : LikelihoodColor(value));
       }
    }
+
+   painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+   painter.drawImage(rect(), image);
 }
 
 } // namespace scwx::qt::ui

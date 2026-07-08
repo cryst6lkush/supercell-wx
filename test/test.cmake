@@ -16,6 +16,7 @@ set(SRC_AWIPS_TESTS source/scwx/awips/coded_location.test.cpp
                     source/scwx/awips/wmo_header.test.cpp)
 set(SRC_COMMON_TESTS source/scwx/common/color_table.test.cpp
                      source/scwx/common/grid.test.cpp
+                     source/scwx/common/lambert_conformal.test.cpp
                      source/scwx/common/products.test.cpp
                      source/scwx/common/storm_development_index.test.cpp)
 set(SRC_CONFIG_TESTS source/scwx/config/ondas_config.test.cpp
@@ -25,6 +26,7 @@ set(SRC_NETWORK_TESTS source/scwx/network/dir_list.test.cpp
                       source/scwx/network/ntp_client.test.cpp)
 set(SRC_PROVIDER_TESTS source/scwx/provider/aws_level2_data_provider.test.cpp
                        source/scwx/provider/aws_level3_data_provider.test.cpp
+                       source/scwx/provider/hrrr_provider.test.cpp
                        source/scwx/provider/http_level3_data_provider.test.cpp
                        source/scwx/provider/iem_api_provider.test.cpp
                        source/scwx/provider/nws_level3_behavior.test.cpp

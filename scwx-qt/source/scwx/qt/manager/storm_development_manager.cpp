@@ -1,7 +1,7 @@
 #include <scwx/qt/manager/storm_development_manager.hpp>
 #include <scwx/qt/settings/storm_development_settings.hpp>
 #include <scwx/common/storm_development_index.hpp>
-#include <scwx/provider/open_meteo_provider.hpp>
+#include <scwx/provider/hrrr_provider.hpp>
 #include <scwx/util/logger.hpp>
 
 #include <mutex>
@@ -17,13 +17,14 @@ static const std::string logPrefix_ =
    "scwx::qt::manager::storm_development_manager";
 static const auto logger_ = scwx::util::Logger::Create(logPrefix_);
 
-// CONUS bounding box at 2-degree spacing (~420 points, batched to
-// Open-Meteo).
+// CONUS bounding box at 1-degree spacing (~1600 points). The HRRR provider is
+// unmetered (one hourly GRIB2 download, not per-point requests), so a finer
+// grid costs nothing extra. The heat-map widget interpolates for display.
 static constexpr double kConusLatMin_     = 24.0;
 static constexpr double kConusLatMax_     = 50.0;
 static constexpr double kConusLonMin_     = -125.0;
 static constexpr double kConusLonMax_     = -66.0;
-static constexpr double kConusSpacingDeg_ = 2.0;
+static constexpr double kConusSpacingDeg_ = 1.0;
 
 class StormDevelopmentManager::Impl
 {
@@ -58,7 +59,7 @@ public:
    boost::asio::steady_timer refreshTimer_ {threadPool_};
    std::mutex                timerMutex_ {};
 
-   provider::OpenMeteoProvider openMeteoProvider_ {};
+   provider::HrrrProvider hrrrProvider_ {};
 
    boost::uuids::uuid enabledCallbackUuid_ {};
    boost::uuids::uuid refreshIntervalCallbackUuid_ {};
@@ -165,7 +166,7 @@ void StormDevelopmentManager::Impl::Refresh()
                             kConusSpacingDeg_};
 
    auto points = grid.Points();
-   auto result = openMeteoProvider_.FetchGrid(points);
+   auto result = hrrrProvider_.FetchInputs(points);
 
    if (!result.has_value())
    {
@@ -180,24 +181,14 @@ void StormDevelopmentManager::Impl::Refresh()
    }
    else
    {
-      const auto& responses = result.value();
+      const auto& inputs = result.value();
 
-      for (std::size_t i = 0; i < responses.size(); ++i)
+      for (std::size_t i = 0; i < inputs.size(); ++i)
       {
-         const auto& current = responses[i].current_;
-
-         common::StormDevelopmentInputs inputs {};
-         inputs.capeJPerKg_ = current.capeJPerKg_;
-         inputs.convectiveInhibitionJPerKg_ =
-            current.convectiveInhibitionJPerKg_;
-         inputs.relativeHumidity2mPercent_ =
-            current.relativeHumidity2mPercent_;
-         inputs.windSpeed10mMs_ = current.windSpeed10mMs_;
-
          const std::size_t row    = i / grid.ColumnCount();
          const std::size_t column = i % grid.ColumnCount();
          grid.SetValue(
-            row, column, common::ComputeStormDevelopmentScore(inputs));
+            row, column, common::ComputeStormDevelopmentScore(inputs[i]));
       }
 
       {
