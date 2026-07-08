@@ -48,7 +48,6 @@
 #include <scwx/qt/ui/marker_dialog.hpp>
 #include <scwx/qt/ui/radar_site_dialog.hpp>
 #include <scwx/qt/ui/settings_dialog.hpp>
-#include <scwx/qt/ui/storm_development_dock_widget.hpp>
 #include <scwx/qt/ui/storm_development_settings_widget.hpp>
 #include <scwx/qt/ui/update_dialog.hpp>
 #include <scwx/qt/ui/import/import_settings_wizard.hpp>
@@ -348,7 +347,6 @@ public:
    QLabel* timeLabel_ {nullptr};
 
    ui::AlertDockWidget*                  alertDockWidget_ {};
-   ui::StormDevelopmentDockWidget*       stormDevelopmentDockWidget_ {};
    QPointer<ui::MapAnnotationDockWidget> mapAnnotationDock_ {};
    ui::AnimationDockWidget*              animationDockWidget_ {};
    ui::AboutDialog*                      aboutDialog_ {};
@@ -477,10 +475,6 @@ MainWindow::MainWindow(QWidget* parent) :
    p->alertDockWidget_ = new ui::AlertDockWidget(this);
    addDockWidget(Qt::BottomDockWidgetArea, p->alertDockWidget_);
 
-   // Configure Storm Development Dock
-   p->stormDevelopmentDockWidget_ = new ui::StormDevelopmentDockWidget(this);
-   addDockWidget(Qt::RightDockWidgetArea, p->stormDevelopmentDockWidget_);
-
    p->mapAnnotationDock_ =
       new ui::MapAnnotationDockWidget(p->mainWindow_->ui->centralwidget);
    p->mapAnnotationDock_->AttachToMap(p->activeMap_);
@@ -511,11 +505,6 @@ MainWindow::MainWindow(QWidget* parent) :
                               p->alertDockWidget_->toggleViewAction());
    p->alertDockWidget_->toggleViewAction()->setText(tr("&Alerts"));
    ui->actionAlerts->setVisible(false);
-
-   ui->menuView->addAction(
-      p->stormDevelopmentDockWidget_->toggleViewAction());
-   p->stormDevelopmentDockWidget_->toggleViewAction()->setText(
-      tr("Storm &Development"));
 
    ui->menuDebug->menuAction()->setVisible(
       settings::GeneralSettings::Instance().debug_enabled().GetValue());

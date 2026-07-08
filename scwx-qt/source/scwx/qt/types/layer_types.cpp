@@ -28,6 +28,8 @@ static const std::unordered_map<InformationLayer, std::string>
                           {InformationLayer::RadarSite, "Radar Sites"},
                           {InformationLayer::ColorTable, "Color Table"},
                           {InformationLayer::Markers, "Location Markers"},
+                          {InformationLayer::StormDevelopment,
+                           "Storm Development"},
                           {InformationLayer::Unknown, "?"}};
 
 static const std::unordered_map<MapLayer, std::string> mapLayerName_ {

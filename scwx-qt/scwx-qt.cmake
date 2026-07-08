@@ -176,7 +176,8 @@ set(HDR_MAP source/scwx/qt/map/alert_layer.hpp
             source/scwx/qt/map/marker_layer.hpp
             source/scwx/qt/map/radar_product_layer.hpp
             source/scwx/qt/map/radar_range_layer.hpp
-            source/scwx/qt/map/radar_site_layer.hpp)
+            source/scwx/qt/map/radar_site_layer.hpp
+            source/scwx/qt/map/storm_development_layer.hpp)
 set(SRC_MAP source/scwx/qt/map/alert_layer.cpp
             source/scwx/qt/map/map_link_policy.cpp
             source/scwx/qt/map/color_table_layer.cpp
@@ -197,7 +198,8 @@ set(SRC_MAP source/scwx/qt/map/alert_layer.cpp
             source/scwx/qt/map/marker_layer.cpp
             source/scwx/qt/map/radar_product_layer.cpp
             source/scwx/qt/map/radar_range_layer.cpp
-            source/scwx/qt/map/radar_site_layer.cpp)
+            source/scwx/qt/map/radar_site_layer.cpp
+            source/scwx/qt/map/storm_development_layer.cpp)
 set(HDR_MODEL source/scwx/qt/model/alert_model.hpp
               source/scwx/qt/model/alert_proxy_model.hpp
               source/scwx/qt/model/imgui_context_model.hpp
@@ -339,8 +341,6 @@ set(HDR_UI source/scwx/qt/ui/about_dialog.hpp
            source/scwx/qt/ui/radar_site_dialog.hpp
            source/scwx/qt/ui/serial_port_dialog.hpp
            source/scwx/qt/ui/settings_dialog.hpp
-           source/scwx/qt/ui/storm_development_dock_widget.hpp
-           source/scwx/qt/ui/storm_development_heat_map_widget.hpp
            source/scwx/qt/ui/storm_development_settings_widget.hpp
            source/scwx/qt/ui/threshold_line_edit_sync.hpp
            source/scwx/qt/ui/threshold_value_utility.hpp
@@ -381,8 +381,6 @@ set(SRC_UI source/scwx/qt/ui/about_dialog.cpp
            source/scwx/qt/ui/radar_site_dialog.cpp
            source/scwx/qt/ui/settings_dialog.cpp
            source/scwx/qt/ui/serial_port_dialog.cpp
-           source/scwx/qt/ui/storm_development_dock_widget.cpp
-           source/scwx/qt/ui/storm_development_heat_map_widget.cpp
            source/scwx/qt/ui/storm_development_settings_widget.cpp
            source/scwx/qt/ui/update_dialog.cpp
            source/scwx/qt/ui/wfo_dialog.cpp)

@@ -12,6 +12,7 @@
 #include <scwx/qt/map/map_provider.hpp>
 #include <scwx/qt/map/map_settings.hpp>
 #include <scwx/qt/map/marker_layer.hpp>
+#include <scwx/qt/map/storm_development_layer.hpp>
 #include <scwx/qt/map/overlay_layer.hpp>
 #include <scwx/qt/map/overlay_product_layer.hpp>
 #include <scwx/qt/map/placefile_layer.hpp>
@@ -199,6 +200,7 @@ public:
        overlayLayer_ {nullptr},
        placefileLayer_ {nullptr},
        markerLayer_ {nullptr},
+       stormDevelopmentLayer_ {nullptr},
        colorTableLayer_ {nullptr},
        annotationLayer_ {nullptr},
        autoRefreshEnabled_ {true},
@@ -376,6 +378,7 @@ public:
    std::shared_ptr<OverlayProductLayer>       overlayProductLayer_ {nullptr};
    std::shared_ptr<PlacefileLayer>            placefileLayer_;
    std::shared_ptr<MarkerLayer>               markerLayer_;
+   std::shared_ptr<StormDevelopmentLayer>     stormDevelopmentLayer_;
    std::shared_ptr<ColorTableLayer>           colorTableLayer_;
    std::shared_ptr<RadarSiteLayer>            radarSiteLayer_ {nullptr};
    std::shared_ptr<MapAnnotationLayer>        annotationLayer_;
@@ -1754,6 +1757,13 @@ void MapWidgetImpl::AddLayer(types::LayerType        type,
       case types::InformationLayer::Markers:
          markerLayer_ = std::make_shared<MarkerLayer>(glContext_);
          AddLayer(layerName, markerLayer_, before);
+         break;
+
+      // Create the storm development overlay layer
+      case types::InformationLayer::StormDevelopment:
+         stormDevelopmentLayer_ =
+            std::make_shared<StormDevelopmentLayer>(glContext_);
+         AddLayer(layerName, stormDevelopmentLayer_, before);
          break;
 
       default:

@@ -17,14 +17,18 @@ static const std::string logPrefix_ =
    "scwx::qt::manager::storm_development_manager";
 static const auto logger_ = scwx::util::Logger::Create(logPrefix_);
 
-// CONUS bounding box at 1-degree spacing (~1600 points). The HRRR provider is
-// unmetered (one hourly GRIB2 download, not per-point requests), so a finer
-// grid costs nothing extra. The heat-map widget interpolates for display.
+// CONUS bounding box sampled near HRRR's native sharpness. The HRRR provider
+// is unmetered (one hourly GRIB2 download, not per-point requests), so a fine
+// grid costs only local sampling/mesh work; the map layer interpolates between
+// points for display.
+// ponytail: 0.1 deg (~11 km) balances sharpness against a flat-triangle mesh
+// (~150k cells). For true 3 km native resolution, render as a GL texture with
+// a fragment-shader color map instead of a per-cell mesh.
 static constexpr double kConusLatMin_     = 24.0;
 static constexpr double kConusLatMax_     = 50.0;
 static constexpr double kConusLonMin_     = -125.0;
 static constexpr double kConusLonMax_     = -66.0;
-static constexpr double kConusSpacingDeg_ = 1.0;
+static constexpr double kConusSpacingDeg_ = 0.1;
 
 class StormDevelopmentManager::Impl
 {
