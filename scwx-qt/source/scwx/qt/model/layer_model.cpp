@@ -63,10 +63,6 @@ static const std::vector<types::LayerInfo> kDefaultLayers_ {
    {.type_        = types::LayerType::Alert,
     .description_ = awips::Phenomenon::Marine,
     .movable_     = true},
-   {.type_        = types::LayerType::Information,
-    .description_ = types::InformationLayer::StormDevelopment,
-    .movable_     = true,
-    .displayed_   = {false}},
    {.type_        = types::LayerType::Map,
     .description_ = types::MapLayer::MapSymbology,
     .movable_     = false},
@@ -76,6 +72,12 @@ static const std::vector<types::LayerInfo> kDefaultLayers_ {
    {.type_        = types::LayerType::Radar,
     .description_ = std::monostate {},
     .movable_     = true},
+   // Environmental overlay: drawn beneath the radar product so it never
+   // obscures it. Off by default; enable per pane from the Layers dialog.
+   {.type_        = types::LayerType::Information,
+    .description_ = types::InformationLayer::StormDevelopment,
+    .movable_     = true,
+    .displayed_   = {false}},
    {.type_        = types::LayerType::Map,
     .description_ = types::MapLayer::MapUnderlay,
     .movable_     = false},

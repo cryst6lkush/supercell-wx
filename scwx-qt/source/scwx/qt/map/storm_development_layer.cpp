@@ -1,12 +1,15 @@
 #include <scwx/qt/map/storm_development_layer.hpp>
 #include <scwx/qt/gl/draw/placefile_triangles.hpp>
 #include <scwx/qt/manager/storm_development_manager.hpp>
+#include <scwx/qt/settings/storm_development_settings.hpp>
 #include <scwx/common/grid.hpp>
 #include <scwx/util/logger.hpp>
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+
+#include <boost/uuid/uuid.hpp>
 
 namespace scwx::qt::map
 {
@@ -72,19 +75,38 @@ public:
                        self_,
                        [this]() { RebuildMesh(); },
                        Qt::QueuedConnection);
+
+      // The toolbox "Enabled" checkbox is the master on/off switch: hide the
+      // overlay immediately when it is unchecked, show it when re-checked.
+      enabledCallbackUuid_ =
+         settings::StormDevelopmentSettings::Instance()
+            .enabled()
+            .RegisterValueChangedCallback([this](const bool&)
+                                          { RebuildMesh(); });
    }
-   ~Impl() = default;
+   ~Impl()
+   {
+      settings::StormDevelopmentSettings::Instance()
+         .enabled()
+         .UnregisterValueChangedCallback(enabledCallbackUuid_);
+   }
 
    void RebuildMesh();
 
    StormDevelopmentLayer*                            self_;
    std::shared_ptr<gl::draw::PlacefileTriangles>     triangles_;
    std::shared_ptr<manager::StormDevelopmentManager> manager_;
+   boost::uuids::uuid                                enabledCallbackUuid_ {};
 };
 
 void StormDevelopmentLayer::Impl::RebuildMesh()
 {
-   auto grid = manager_->Grid();
+   const bool enabled =
+      settings::StormDevelopmentSettings::Instance().enabled().GetValue();
+
+   // When disabled, produce an empty mesh so nothing is drawn (the overlay
+   // must not obscure the radar product underneath).
+   auto grid = enabled ? manager_->Grid() : nullptr;
 
    triangles_->StartTriangles();
 
